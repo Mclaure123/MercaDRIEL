@@ -3,208 +3,513 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MercaDRIEL ◈ Secure Logistics</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;700&display=swap" rel="stylesheet">
+<title>MercaDRIEL ◈ Enterprise Logistics V7</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
+/* ==========================================================================
+   FUNDAMENTOS ARQUITECTONICOS CSS - V7 B2B ENTERPRISE
+   ========================================================================== */
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-h1, h2, .brand-font { font-family: 'Orbitron', sans-serif; }
-body { width: 100vw; height: 100vh; overflow: hidden; background: #020205; color: #fff; }
-#welcome-layer { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.glitch { font-size: 4rem; color: #e94560; text-shadow: 2px 2px #00fff2; font-weight: 900; }
-#btn-enter-sys { margin-top: 30px; padding: 15px 40px; background: #e94560; color: #fff; border: none; cursor: pointer; font-weight: 900; letter-spacing: 3px; clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%); }
-#hud-top { height: 45px; background: #0a0a0f; border-bottom: 1px solid #e94560; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-size: 0.7rem; color: #888; text-transform: uppercase; }
-#hud-top span { color: #e94560; margin-left: 5px; font-weight: bold; }
-#hero-search-zone { height: 140px; background: radial-gradient(circle at center, #111 0%, #020205 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #1a1a1a; }
-.search-container { width: 90%; max-width: 900px; display: flex; filter: drop-shadow(0 0 15px rgba(233,69,96,0.2)); }
-.search-container input { flex-grow: 1; padding: 22px 35px; background: rgba(0,0,0,0.8); border: 2px solid #e94560; border-right: none; border-radius: 50px 0 0 50px; color: #fff; font-size: 1.2rem; outline: none; }
-.search-container button { padding: 0 45px; background: #e94560; border: none; border-radius: 0 50px 50px 0; color: #fff; font-weight: 900; cursor: pointer; font-family: 'Orbitron'; }
-#main-viewport { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 185px); }
-#product-stream { overflow-y: auto; padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-#product-stream::-webkit-scrollbar { width: 4px; }
-#product-stream::-webkit-scrollbar-thumb { background: #e94560; }
-#side-info { background: #050508; border-left: 1px solid #1a1a1a; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
-.card-md { background: #0a0a0f; border: 1px solid #1a1a1a; border-radius: 8px; padding: 20px; transition: 0.4s; }
-.card-md:hover { border-color: #e94560; transform: translateY(-3px); }
-.card-md h3 { font-size: 0.9rem; margin-bottom: 15px; color: #ccc; }
-.price-locked { color: #444; font-size: 0.75rem; border: 1px dashed #333; padding: 10px; text-align: center; }
-.price-active { color: #4caf50; font-weight: 900; font-size: 1.4rem; }
-.btn-action { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 4px; font-weight: 900; cursor: pointer; margin-top: 15px; font-family: 'Orbitron'; font-size: 0.7rem; }
-#modal-auth { position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
-.auth-box { background: #0a0a0f; width: 100%; max-width: 600px; border: 1px solid #e94560; border-radius: 10px; overflow: hidden; }
-.auth-header { background: #e94560; padding: 20px; text-align: center; font-family: 'Orbitron'; font-weight: 900; }
-.auth-content { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3, .brand-font { font-family: 'Orbitron', sans-serif; }
+body { width: 100vw; height: 100vh; overflow: hidden; background: #0b1120; color: #f8fafc; font-size: 16px; }
+/* ==========================================================================
+   SISTEMA DE NOTIFICACIONES TOAST (NUEVO)
+   ========================================================================== */
+#toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 15000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+.toast { background: #1e293b; color: #fff; padding: 16px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 12px; transform: translateX(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-left: 4px solid #3b82f6; pointer-events: auto; }
+.toast.show { transform: translateX(0); opacity: 1; }
+.toast-success { border-left-color: #10b981; }
+.toast-error { border-left-color: #ef4444; }
+.toast-info { border-left-color: #3b82f6; }
+/* ==========================================================================
+   CAPA DE BIENVENIDA & HUD
+   ========================================================================== */
+#welcome-layer { position: fixed; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #0b1120 100%); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+.brand-title { font-size: 5rem; color: #ffffff; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 20px rgba(59,130,246,0.5); margin-bottom: 5px; }
+.brand-title span { color: #3b82f6; }
+.brand-subtitle { font-size: 1rem; color: #94a3b8; letter-spacing: 5px; margin-bottom: 40px; font-weight: 700; text-transform: uppercase; }
+#btn-enter-sys { padding: 20px 60px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(37,99,235,0.4); text-transform: uppercase; }
+#btn-enter-sys:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(79,70,229,0.6); }
+#hud-top { height: 50px; background: rgba(15,23,42,0.98); border-bottom: 1px solid #1e293b; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+#hud-top span { color: #3b82f6; margin-left: 8px; font-weight: 900; }
+/* ==========================================================================
+   ZONA DE BUSQUEDA MAIN
+   ========================================================================== */
+#hero-search-zone { height: 160px; background: linear-gradient(to bottom, #0f172a, #0b1120); display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid #1e293b; gap: 15px; position: relative; }
+.hero-tagline { font-size: 1.1rem; color: #64748b; font-weight: 600; letter-spacing: 1px; }
+.search-container { width: 90%; max-width: 950px; display: flex; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 50px; overflow: hidden; }
+.search-container input { flex-grow: 1; padding: 25px 40px; background: #1e293b; border: 2px solid #334155; border-right: none; border-radius: 50px 0 0 50px; color: #fff; font-size: 1.1rem; outline: none; transition: border-color 0.3s; font-weight: 600; }
+.search-container input:focus { border-color: #3b82f6; }
+.search-container button { padding: 0 50px; background: #3b82f6; border: none; color: #fff; font-weight: 900; font-size: 1.1rem; cursor: pointer; transition: background 0.3s; letter-spacing: 1px; }
+.search-container button:hover { background: #2563eb; }
+/* ==========================================================================
+   GRILLA DE PRODUCTOS (MAIN VIEWPORT)
+   ========================================================================== */
+#main-viewport { display: grid; grid-template-columns: 1fr 420px; height: calc(100vh - 210px); }
+#product-stream { overflow-y: auto; padding: 35px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; align-content: start; }
+#product-stream::-webkit-scrollbar { width: 8px; }
+#product-stream::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+#product-stream::-webkit-scrollbar-track { background: #0f172a; }
+/* Tarjetas de Producto - 100% Interactivas */
+.card-md { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; cursor: pointer; }
+.card-md::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); opacity: 0; transition: opacity 0.3s; }
+.card-md:hover { border-color: #475569; transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); background: #233147; }
+.card-md:hover::before { opacity: 1; }
+.product-icon { height: 130px; background: #0f172a; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 20px; font-size: 3rem; color: #3b82f6; border: 1px solid #334155; transition: transform 0.3s; }
+.card-md:hover .product-icon { transform: scale(1.05); border-color: #3b82f6; }
+.card-md h3 { font-size: 1.1rem; margin-bottom: 15px; color: #f8fafc; font-weight: 700; line-height: 1.4; pointer-events: none; }
+.price-locked { color: #94a3b8; font-size: 0.85rem; background: #0f172a; padding: 15px; border-radius: 6px; text-align: center; font-weight: 700; border: 1px dashed #475569; letter-spacing: 1px; pointer-events: none; }
+.price-active { color: #10b981; font-weight: 900; font-size: 1.8rem; font-family: 'Orbitron'; pointer-events: none; text-shadow: 0 0 15px rgba(16,185,129,0.2); }
+.btn-action { width: 100%; padding: 15px; background: transparent; color: #3b82f6; border: 2px solid #3b82f6; border-radius: 8px; font-weight: 800; margin-top: 20px; font-size: 0.85rem; transition: all 0.3s; text-transform: uppercase; pointer-events: none; }
+.card-md:hover .btn-action { background: #3b82f6; color: #fff; box-shadow: 0 5px 15px rgba(59,130,246,0.4); }
+/* ==========================================================================
+   SIDEBAR (CARRITO DE COMPRAS)
+   ========================================================================== */
+#side-info { background: #0f172a; border-left: 1px solid #1e293b; padding: 30px; display: flex; flex-direction: column; box-shadow: -5px 0 25px rgba(0,0,0,0.4); position: relative; }
+.side-header { font-size: 1.2rem; font-weight: 900; color: #f8fafc; border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 1px; }
+.cart-badge { background: #3b82f6; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 900; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+#cart-msg { color: #64748b; font-size: 0.95rem; line-height: 1.6; text-align: center; margin-top: 40px; background: #1e293b; padding: 30px 20px; border-radius: 12px; border: 1px dashed #334155; }
+#cart-list { list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
+#cart-list::-webkit-scrollbar { width: 6px; }
+#cart-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+.cart-item { background: #1e293b; border-radius: 8px; padding: 15px; border-left: 4px solid #3b82f6; display: flex; flex-direction: column; gap: 8px; transition: transform 0.2s; position: relative; }
+.cart-item:hover { background: #233147; transform: translateX(-5px); }
+.cart-item-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.cart-item-title { color: #e2e8f0; font-weight: 600; font-size: 0.9rem; line-height: 1.3; padding-right: 25px; }
+.cart-item-price { color: #10b981; font-weight: 900; font-family: 'Orbitron'; font-size: 1.1rem; }
+.btn-delete-item { position: absolute; top: 12px; right: 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.8rem; }
+.btn-delete-item:hover { background: #ef4444; color: #fff; transform: scale(1.1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+#cart-total-box { background: linear-gradient(135deg, #1e293b, #0f172a); padding: 25px; border-radius: 12px; margin-top: auto; border: 1px solid #334155; box-shadow: 0 -10px 20px rgba(0,0,0,0.2); }
+.total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
+.total-label { color: #94a3b8; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.total-value { color: #10b981; font-size: 2.2rem; font-weight: 900; font-family: 'Orbitron'; text-shadow: 0 0 20px rgba(16,185,129,0.4); }
+#btn-checkout { width: 100%; padding: 18px; background: linear-gradient(90deg, #10b981, #059669); color: #fff; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; transition: all 0.3s; display: none; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(16,185,129,0.3); }
+#btn-checkout:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(16,185,129,0.5); }
+/* ==========================================================================
+   MODAL DE AUTENTICACION Y SEGURIDAD B2B
+   ========================================================================== */
+#modal-auth { position: fixed; inset: 0; background: rgba(11,17,32,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
+.auth-box { background: #1e293b; width: 100%; max-width: 600px; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8); border: 1px solid #3b82f6; position: relative; }
+.auth-box::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background: linear-gradient(90deg, #3b82f6, #10b981); }
+.auth-header { background: #0f172a; padding: 30px 25px; text-align: center; font-weight: 900; color: #f8fafc; font-size: 1.3rem; letter-spacing: 2px; text-transform: uppercase; }
+.auth-content { padding: 40px; display: flex; flex-direction: column; gap: 20px; }
 .auth-step-2 { display: none; }
-.input-wrap { display: flex; flex-direction: column; gap: 8px; }
-.input-wrap label { font-size: 0.7rem; color: #e94560; font-weight: bold; }
-.input-wrap input { padding: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
-#map-pre { height: 180px; background: #000; border: 1px solid #222; border-radius: 5px; overflow: hidden; }
+.input-wrap { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+.input-wrap label { font-size: 0.8rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.input-wrap input { padding: 18px; background: #0f172a; border: 2px solid #334155; color: #fff; border-radius: 8px; outline: none; transition: all 0.3s; font-size: 1rem; font-weight: 600; }
+.input-wrap input:focus { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59,130,246,0.2); }
+#map-pre { height: 180px; background: #0f172a; border: 2px dashed #334155; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.9rem; font-weight: 700; margin-bottom: 20px; text-transform: uppercase; }
 #map-pre iframe { width: 100%; height: 100%; border: none; }
-.btn-step { background: #e94560; color: #fff; border: none; padding: 18px; font-weight: 900; cursor: pointer; font-family: 'Orbitron'; margin-top: 10px; }
-.btn-gps-alt { background: #00fff2; color: #000; padding: 5px 15px; border-radius: 3px; font-weight: bold; cursor: pointer; font-size: 0.7rem; border: none; }
+.btn-step { background: #3b82f6; color: #fff; border: none; padding: 20px; border-radius: 8px; font-weight: 900; cursor: pointer; margin-top: 10px; transition: background 0.3s; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
+.btn-step:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(37,99,235,0.3); }
+.btn-gps-alt { background: #334155; color: #f8fafc; padding: 0 25px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.9rem; border: none; transition: all 0.3s; }
+.btn-gps-alt:hover { background: #475569; color: #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+.btn-cancel-modal { width: 100%; margin-top: 15px; background: transparent; border: 2px solid #475569; color: #94a3b8; padding: 18px; border-radius: 8px; cursor: pointer; font-weight: 800; transition: all 0.3s; letter-spacing: 1px; }
+.btn-cancel-modal:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.05); }
 </style>
 </head>
 <body>
+<!-- Contenedor Toasts -->
+<div id="toast-container"></div>
+<!-- Capa Bienvenida -->
 <section id="welcome-layer">
-<div class="glitch">MercaDRIEL</div>
-<div style="letter-spacing: 5px; color: #444; font-size: 0.8rem;">LIMBERT LANDRIEL ◈ BOLIVIA 2026</div>
-<button id="btn-enter-sys">ACCEDER AL TERMINAL</button>
+<div class="brand-title">Merca<span>DRIEL</span></div>
+<div class="brand-subtitle">Enterprise Logistics Node ◈ V7</div>
+<button id="btn-enter-sys">INICIAR SESIÓN SEGURA</button>
 </section>
+<!-- HUD Superior -->
 <header id="hud-top">
-<div>BRAND: <span>MercaDRIEL v4.0</span></div>
-<div>ADDR: <span>Sta. Cruz, BO</span></div>
-<div>WA: <span>+591 70000000</span></div>
-<div>STATUS: <span id="st-user">DESCONOCIDO</span></div>
+<div>SYSTEM: <span>MercaDRIEL B2B v7.0</span></div>
+<div>NODE: <span>Santa Cruz de la Sierra, BO</span></div>
+<div>ENCRYPTION: <span>AES-256 ACTIVE</span></div>
+<div>OPERATOR: <span id="st-user">GUEST / UNVERIFIED</span></div>
 </header>
+<!-- Buscador Central -->
 <section id="hero-search-zone">
+<div class="hero-tagline">Plataforma Logística Inteligente B2B desde Mercado Libre hacia Bolivia</div>
 <form class="search-container" id="search-engine">
-<input type="text" id="q-input" placeholder="¿QUÉ DESEAS TRAER DE MERCADO LIBRE?" required autocomplete="off">
-<button type="submit">BUSCAR</button>
+<input type="text" id="q-input" placeholder="Ingrese enlace o nombre del producto corporativo..." required autocomplete="off">
+<button type="submit">ANALIZAR TARIFA</button>
 </form>
 </section>
+<!-- Grid y Sidebar -->
 <main id="main-viewport">
 <section id="product-stream"></section>
 <aside id="side-info">
-<h3 class="brand-font" style="font-size:0.8rem; border-bottom:1px solid #e94560; padding-bottom:10px;">MI DESPACHO</h3>
-<div id="cart-msg" style="color:#444; font-size:0.75rem;">Agregue productos para iniciar cotización lograda por Limbert Landriel.</div>
+<div class="side-header">
+<span>DESPACHO ACTUAL</span>
+<span class="cart-badge" id="cart-count">0</span>
+</div>
+<div id="cart-msg">
+Su manifiesto de carga está vacío.<br><br>Utilice el motor de búsqueda y seleccione tarjetas para agregar productos al lote corporativo.
+</div>
+<ul id="cart-list"></ul>
+<div id="cart-total-box" style="display:none;">
+<div class="total-row">
+<span class="total-label">Inversión Total:</span>
+<span class="total-value" id="cart-total-val">$0.00</span>
+</div>
+<button id="btn-checkout">PROCESAR MANIFIESTO VIA WHATSAPP</button>
+</div>
 </aside>
 </main>
+<!-- Modal Autenticación -->
 <div id="modal-auth">
 <div class="auth-box">
-<div class="auth-header">MercaDRIEL ◈ VERIFICACIÓN DE SEGURIDAD</div>
+<div class="auth-header">REGISTRO DE OPERADOR LOGÍSTICO</div>
 <div class="auth-content">
 <form id="step-1">
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-<div class="input-wrap"><label>NOMBRE</label><input type="text" id="u-name" required></div>
-<div class="input-wrap"><label>APELLIDO</label><input type="text" id="u-last" required></div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+<div class="input-wrap"><label>NOMBRES</label><input type="text" id="u-name" required></div>
+<div class="input-wrap"><label>APELLIDOS</label><input type="text" id="u-last" required></div>
 </div>
-<div class="input-wrap"><label>WHATSAPP (PARA RECIBIR CÓDIGO HEX)</label><input type="tel" id="u-wa" placeholder="+591" required></div>
+<div class="input-wrap"><label>WHATSAPP CORPORATIVO</label><input type="tel" id="u-wa" placeholder="+591 70000000" required></div>
+<div class="input-wrap"><label>GMAIL EMPRESARIAL (REQUERIDO PARA HEX)</label><input type="email" id="u-email" placeholder="operador@gmail.com" pattern=".*@gmail\.com$" title="Seguridad perimetral exige dominio @gmail.com" required></div>
 <div class="input-wrap">
-<label>ENTREGA GPS</label>
+<label>COORDENADAS DE ALMACÉN</label>
 <div style="display:flex; gap:10px;">
-<input type="text" id="u-addr" style="flex-grow:1" readonly required placeholder="Ubicación requerida...">
-<button type="button" class="btn-gps-alt" id="trigger-geo">DETECTAR</button>
+<input type="text" id="u-addr" style="flex-grow:1" readonly required placeholder="Ubicación satelital obligatoria...">
+<button type="button" class="btn-gps-alt" id="trigger-geo">RASTREAR GPS</button>
 </div>
 </div>
-<div id="map-pre"></div>
-<button type="submit" class="btn-step" style="width:100%">OBTENER CÓDIGO HEXADECIMAL</button>
+<div id="map-pre">SISTEMA TELEMÉTRICO EN ESPERA...</div>
+<button type="submit" class="btn-step" style="width:100%">GENERAR CÓDIGO HEXADECIMAL</button>
+<button type="button" id="btn-close-modal" class="btn-cancel-modal">CANCELAR OPERACIÓN</button>
 </form>
 <form id="step-2" class="auth-step-2">
-<p style="text-align:center; font-size:0.8rem; color:#888;">Hemos generado un código de 4 caracteres.<br>Ingrese el código para desbloquear los precios de MercaDRIEL.</p>
-<div class="input-wrap" style="margin:20px 0;">
-<label style="text-align:center;">CÓDIGO HEX (4 DÍGITOS)</label>
-<input type="text" id="verify-code" maxlength="4" style="text-align:center; font-size:2rem; letter-spacing:10px; font-family:'Orbitron';" placeholder="0000" required>
+<p style="text-align:center; font-size:0.95rem; color:#94a3b8; line-height:1.6;">El sistema ha remitido un código de cifrado a su cuenta Gmail.<br>Valide el token para sincronizar su sesión y habilitar cotizaciones.</p>
+<div class="input-wrap" style="margin:30px 0;">
+<label style="text-align:center; color:#3b82f6;">TOKEN HEXADECIMAL DE SEGURIDAD</label>
+<input type="text" id="verify-code" maxlength="4" style="text-align:center; font-size:3rem; letter-spacing:20px; font-family:'Orbitron'; font-weight:900; background:#0f172a; border-color:#3b82f6;" placeholder="0000" required autocomplete="off">
 </div>
-<button type="submit" class="btn-step" style="width:100%; background:#4caf50;">VERIFICAR Y ACTIVAR PRECIOS</button>
-<p id="error-hex" style="color:#e94560; font-size:0.7rem; text-align:center; display:none; margin-top:10px;">CÓDIGO INCORRECTO. REINTENTE.</p>
+<button type="submit" class="btn-step" style="width:100%; background:#10b981;">AUTENTICAR OPERADOR Y CONTINUAR</button>
+<p id="error-hex" style="color:#ef4444; font-size:0.9rem; text-align:center; display:none; margin-top:20px; font-weight:800;">FALLO DE AUTENTICACIÓN. TOKEN INVÁLIDO.</p>
+<button type="button" id="btn-close-modal-2" class="btn-cancel-modal">ABORTAR INGRESO</button>
 </form>
 </div>
 </div>
 </div>
 <script>
-/** @class MercaDrielApp Motor V4 con Validación Hexadecimal */
-class MercaDrielApp {
+/** 
+ * ARQUITECTURA MONOLÍTICA EXTREMA - V7
+ * Reglas aplicadas: Sin líneas vacías en bloques, módulos separados, persistencia dual.
+ */
+const APP_CONFIG = {
+STORAGE_KEY: "MDR_ENTERPRISE_V7_DATA",
+CART_KEY: "MDR_ENTERPRISE_V7_CART",
+COOKIE_KEY: "MDR_SESS_TOKEN",
+DEFAULT_LOCATION: "UNVERIFIED",
+TAX_RATE: 1.18,
+BASE_FEE: 55.00,
+VERSION: "7.0.0",
+MOCK_DELAY: 800,
+ADMIN_WA: "59170000000" // Reemplazar con el real
+};
+class EventBus {
+constructor() { this.events = {}; }
+on(eventName, callback) { if (!this.events[eventName]) { this.events[eventName] = []; } this.events[eventName].push(callback); }
+emit(eventName, payload = null) { if (this.events[eventName]) { this.events[eventName].forEach(cb => cb(payload)); } }
+}
+const GLOBAL_EVENT_BUS = new EventBus();
+class StateManager {
 constructor() {
-this.config = { STORAGE: "MDR_LOG_V4", HEX: "" };
-this.db = { user: JSON.parse(localStorage.getItem(this.config.STORAGE)), results: [] };
-this.ui = {
-welcome: document.getElementById('welcome-layer'),
-modal: document.getElementById('modal-auth'),
-st1: document.getElementById('step-1'),
-st2: document.getElementById('step-2'),
-map: document.getElementById('map-pre'),
-addr: document.getElementById('u-addr'),
-grid: document.getElementById('product-stream')
-};
-this.init();
+this.state = { user: null, hexCode: "", searchResults: [], cart: [], query: "", location: null, isAuthModalOpen: false, authStep: 1, pendingAction: null };
 }
-init() {
-document.getElementById('btn-enter-sys').onclick = () => this.enter();
-document.getElementById('search-engine').onsubmit = (e) => this.search(e);
-document.getElementById('trigger-geo').onclick = () => this.geo();
-this.ui.st1.onsubmit = (e) => this.sendCode(e);
-this.ui.st2.onsubmit = (e) => this.verify(e);
-if(this.db.user) document.getElementById('st-user').innerText = this.db.user.name;
+mutate(partialState) {
+this.state = Object.assign({}, this.state, partialState);
+GLOBAL_EVENT_BUS.emit("STATE_UPDATED", this.getState());
 }
-enter() { if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); this.ui.welcome.style.display = 'none'; }
-async search(e) {
-e.preventDefault();
-const q = document.getElementById('q-input').value;
-this.ui.grid.innerHTML = `<h2 class="brand-font" style="grid-column:1/-1; text-align:center;">RASTREANDO EN RED MercaDRIEL...</h2>`;
+getState() { return JSON.parse(JSON.stringify(this.state)); }
+}
+const GLOBAL_STATE = new StateManager();
+class NotificationEngine {
+static show(message, type = 'info') {
+const container = document.getElementById('toast-container');
+const toast = document.createElement('div');
+toast.className = `toast toast-${type}`;
+let icon = 'ℹ️';
+if(type === 'success') icon = '✅';
+if(type === 'error') icon = '🚨';
+toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+container.appendChild(toast);
+requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
 setTimeout(() => {
-this.db.results = [
-{id:'H1', title:`${q} - Importación Directa Landriel`, base:210},
-{id:'H2', title:`${q} - Lote de Aduana Santa Cruz`, base:135},
-{id:'H3', title:`${q} - Premium Global Express`, base:450}
+toast.classList.remove('show');
+setTimeout(() => { if (container.contains(toast)) container.removeChild(toast); }, 400);
+}, 4000);
+}
+}
+class SessionManager {
+static initializeSession() {
+let userData = null;
+let cartData = [];
+try {
+const rawData = localStorage.getItem(APP_CONFIG.STORAGE_KEY);
+if (rawData) {
+const parsed = JSON.parse(rawData);
+if (parsed && parsed.verified) userData = parsed;
+}
+if (!userData) {
+const cookieMatch = document.cookie.match(new RegExp('(^| )' + APP_CONFIG.COOKIE_KEY + '=([^;]+)'));
+if (cookieMatch) userData = JSON.parse(decodeURIComponent(cookieMatch[2]));
+}
+const rawCart = localStorage.getItem(APP_CONFIG.CART_KEY);
+if (rawCart) cartData = JSON.parse(rawCart);
+} catch (e) {
+console.warn("[SessionManager] Memoria corrupta. Purgando datos.");
+localStorage.removeItem(APP_CONFIG.STORAGE_KEY);
+localStorage.removeItem(APP_CONFIG.CART_KEY);
+}
+if (userData) {
+GLOBAL_STATE.mutate({ user: userData, cart: cartData });
+NotificationEngine.show(`Bienvenido de nuevo, ${userData.name}. Sesión restaurada.`, 'success');
+}
+}
+static saveSession(userData) {
+try {
+localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify(userData));
+const expiry = new Date();
+expiry.setTime(expiry.getTime() + (7 * 24 * 60 * 60 * 1000));
+document.cookie = `${APP_CONFIG.COOKIE_KEY}=${encodeURIComponent(JSON.stringify(userData))};expires=${expiry.toUTCString()};path=/`;
+} catch (e) { console.error("[SessionManager] Fallo al escribir sesión."); }
+}
+static saveCart(cartData) {
+try { localStorage.setItem(APP_CONFIG.CART_KEY, JSON.stringify(cartData)); } catch (e) { console.error("[SessionManager] Fallo al guardar carrito."); }
+}
+}
+class CartManager {
+static addItem(productDef) {
+const currentState = GLOBAL_STATE.getState();
+const calculatedFinalPrice = (productDef.base * APP_CONFIG.TAX_RATE) + APP_CONFIG.BASE_FEE;
+const uniqueId = `CTX-${Date.now()}-${Math.floor(Math.random()*1000)}`;
+const newItem = { uuid: uniqueId, id: productDef.id, title: productDef.title, price: calculatedFinalPrice };
+const updatedCart = [...currentState.cart, newItem];
+GLOBAL_STATE.mutate({ cart: updatedCart });
+SessionManager.saveCart(updatedCart);
+NotificationEngine.show(`"${productDef.title}" añadido al manifiesto.`, 'success');
+}
+static removeItem(uuid) {
+const currentState = GLOBAL_STATE.getState();
+const itemToRemove = currentState.cart.find(item => item.uuid === uuid);
+if (!itemToRemove) return;
+const updatedCart = currentState.cart.filter(item => item.uuid !== uuid);
+GLOBAL_STATE.mutate({ cart: updatedCart });
+SessionManager.saveCart(updatedCart);
+NotificationEngine.show(`Ítem removido del manifiesto.`, 'error');
+}
+}
+class DOMCache {
+constructor() {
+this.welcomeLayer = document.getElementById('welcome-layer');
+this.btnEnter = document.getElementById('btn-enter-sys');
+this.stUser = document.getElementById('st-user');
+this.searchEngine = document.getElementById('search-engine');
+this.qInput = document.getElementById('q-input');
+this.productStream = document.getElementById('product-stream');
+this.modalAuth = document.getElementById('modal-auth');
+this.step1 = document.getElementById('step-1');
+this.step2 = document.getElementById('step-2');
+this.uName = document.getElementById('u-name');
+this.uLast = document.getElementById('u-last');
+this.uWa = document.getElementById('u-wa');
+this.uEmail = document.getElementById('u-email');
+this.uAddr = document.getElementById('u-addr');
+this.triggerGeo = document.getElementById('trigger-geo');
+this.mapPre = document.getElementById('map-pre');
+this.verifyCode = document.getElementById('verify-code');
+this.errorHex = document.getElementById('error-hex');
+this.btnCloseModal = document.getElementById('btn-close-modal');
+this.btnCloseModal2 = document.getElementById('btn-close-modal-2');
+this.cartList = document.getElementById('cart-list');
+this.cartCount = document.getElementById('cart-count');
+this.cartMsg = document.getElementById('cart-msg');
+this.cartTotalBox = document.getElementById('cart-total-box');
+this.cartTotalVal = document.getElementById('cart-total-val');
+this.btnCheckout = document.getElementById('btn-checkout');
+}
+}
+class AppLogic {
+constructor() {
+this.dom = new DOMCache();
+this.bindEvents();
+this.setupReactivity();
+SessionManager.initializeSession();
+window.AppLogicReference = this; // Expose for inline onclick handlers inside dynamically generated elements
+}
+bindEvents() {
+this.dom.btnEnter.addEventListener('click', () => this.handleSystemEntry());
+this.dom.searchEngine.addEventListener('submit', (e) => this.handleSearchQuery(e));
+this.dom.triggerGeo.addEventListener('click', () => this.handleGeolocation());
+this.dom.step1.addEventListener('submit', (e) => this.handleAuthStep1(e));
+this.dom.step2.addEventListener('submit', (e) => this.handleAuthStep2(e));
+this.dom.btnCloseModal.addEventListener('click', () => this.closeModal());
+this.dom.btnCloseModal2.addEventListener('click', () => this.closeModal());
+this.dom.btnCheckout.addEventListener('click', () => this.handleCheckout());
+}
+setupReactivity() { GLOBAL_EVENT_BUS.on("STATE_UPDATED", (state) => this.renderEngine(state)); }
+closeModal() { GLOBAL_STATE.mutate({ isAuthModalOpen: false, authStep: 1, pendingAction: null }); }
+handleSystemEntry() {
+if (document.documentElement.requestFullscreen) { document.documentElement.requestFullscreen().catch(() => {}); }
+this.dom.welcomeLayer.style.opacity = '0';
+setTimeout(() => { this.dom.welcomeLayer.style.display = 'none'; }, 500);
+}
+handleSearchQuery(e) {
+e.preventDefault();
+const queryValue = this.dom.qInput.value.trim();
+if (!queryValue) return;
+GLOBAL_STATE.mutate({ query: queryValue, searchResults: [] });
+this.dom.productStream.innerHTML = `<h2 class="brand-font" style="grid-column:1/-1; text-align:center; color:#3b82f6; margin-top:50px;">INTERROGANDO RED LOGÍSTICA...</h2>`;
+setTimeout(() => {
+const mockItems = [
+{ id: `ITM-A-${Date.now()}`, title: `${queryValue} - Importación Directa B2B`, base: parseFloat((Math.random() * 500 + 50).toFixed(2)) },
+{ id: `ITM-B-${Date.now()}`, title: `${queryValue} - Lote Consolidado SCZ`, base: parseFloat((Math.random() * 400 + 30).toFixed(2)) },
+{ id: `ITM-C-${Date.now()}`, title: `${queryValue} - Global Express Priority`, base: parseFloat((Math.random() * 800 + 100).toFixed(2)) },
+{ id: `ITM-D-${Date.now()}`, title: `${queryValue} - Standard Cargo Route`, base: parseFloat((Math.random() * 300 + 20).toFixed(2)) }
 ];
-this.draw();
-}, 800);
+GLOBAL_STATE.mutate({ searchResults: mockItems });
+NotificationEngine.show("Análisis de rutas y tarifas completado.", "info");
+}, APP_CONFIG.MOCK_DELAY);
 }
-draw() {
-this.ui.grid.innerHTML = '';
-this.db.results.forEach(p => {
-const div = document.createElement('div');
-div.className = 'card-md';
-let pContent = `<div class="price-locked">◈ REGÍSTRESE PARA COTIZAR ◈</div>`;
-if(this.db.user && this.db.user.verified) {
-const total = (p.base * 1.18) + 55; // Tasas MercaDRIEL
-pContent = `<div class="price-active">$${total.toFixed(2)}</div><div style="font-size:0.6rem; color:#666;">ENTREGA FINAL BOLIVIA</div>`;
+handleGeolocation() {
+if (!navigator.geolocation) { NotificationEngine.show("Módulo de telemetría inactivo.", "error"); return; }
+this.dom.mapPre.innerHTML = "Sincronizando constelación satelital...";
+navigator.geolocation.getCurrentPosition(
+(position) => {
+const lat = position.coords.latitude.toFixed(6);
+const lng = position.coords.longitude.toFixed(6);
+const coordString = `${lat}, ${lng}`;
+GLOBAL_STATE.mutate({ location: coordString });
+this.dom.uAddr.value = coordString;
+this.dom.mapPre.innerHTML = `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed"></iframe>`;
+NotificationEngine.show("Coordenadas fijadas con éxito.", "success");
+},
+(error) => {
+this.dom.mapPre.innerHTML = "INTERFERENCIA GPS. INGRESE DIRECCIÓN MANUALMENTE.";
+this.dom.uAddr.removeAttribute('readonly');
+this.dom.uAddr.focus();
+NotificationEngine.show("Fallo satelital. Ingrese datos manualmente.", "error");
+}, { enableHighAccuracy: true, timeout: 7000 }
+);
 }
-div.innerHTML = `<div style="height:150px; background:#000; display:flex; align-items:center; justify-content:center; border:1px solid #1a1a1a; font-size:3rem; color:#111;">◈</div>
-<h3>${p.title}</h3>${pContent}
-<button class="btn-action" onclick="Core.action('${p.id}')">AGREGAR A MI LISTA</button>`;
-this.ui.grid.appendChild(div);
-});
-}
-action(id) {
-if(!this.db.user || !this.db.user.verified) { this.ui.modal.style.display = 'flex'; } 
-else { alert("◈ Producto añadido a su solicitud en MercaDRIEL."); }
-}
-geo() {
-if (navigator.geolocation) {
-navigator.geolocation.getCurrentPosition(pos => {
-const { latitude, longitude } = pos.coords;
-this.ui.addr.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-this.ui.map.innerHTML = `<iframe src="https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed"></iframe>`;
-this.coords = `${latitude},${longitude}`;
-});
-}
-}
-sendCode(e) {
+handleAuthStep1(e) {
 e.preventDefault();
-// GENERAR CÓDIGO HEXADECIMAL DE 4 DÍGITOS
-this.config.HEX = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
-const phone = document.getElementById('u-wa').value;
-const name = document.getElementById('u-name').value;
-// ABRIR WHATSAPP CON EL CÓDIGO (Simula envío)
-const msg = encodeURIComponent(`MercaDRIEL: Hola ${name}, tu código de verificación es: ${this.config.HEX}`);
-window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-// PASAR AL PASO 2
-this.ui.st1.style.display = 'none';
-this.ui.st2.style.display = 'block';
-console.log("MercaDRIEL Hex:", this.config.HEX); // Solo para desarrollo
+const nameVal = this.dom.uName.value.trim();
+const waVal = this.dom.uWa.value.trim();
+const emailVal = this.dom.uEmail.value.trim();
+const addrVal = this.dom.uAddr.value.trim();
+if (!nameVal || !waVal || !emailVal || !addrVal) return;
+const generatedHex = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+GLOBAL_STATE.mutate({ hexCode: generatedHex, authStep: 2 });
+const emailSubject = encodeURIComponent("MercaDRIEL Enterprise - Token HEX de Seguridad");
+const emailBody = encodeURIComponent(`Operador: ${nameVal.toUpperCase()}\n\nEl sistema ha generado su TOKEN de seguridad B2B.\nPara acceder a la matriz de precios, introduzca el siguiente código en el terminal:\n\n[ TOKEN HEX: ${generatedHex} ]\n\nMercaDRIEL Core Logistics.`);
+window.open(`mailto:${emailVal}?subject=${emailSubject}&body=${emailBody}`, '_blank');
+NotificationEngine.show(`Token generado y derivado a ${emailVal}`, "info");
 }
-verify(e) {
+handleAuthStep2(e) {
 e.preventDefault();
-const input = document.getElementById('verify-code').value.toUpperCase();
-if(input === this.config.HEX) {
-const user = {
-name: document.getElementById('u-name').value,
-last: document.getElementById('u-last').value,
-wa: document.getElementById('u-wa').value,
-loc: this.coords,
-verified: true
-};
-localStorage.setItem(this.config.STORAGE, JSON.stringify(user));
-this.db.user = user;
-this.ui.modal.style.display = 'none';
-document.getElementById('st-user').innerText = user.name;
-this.draw();
+const inputHex = this.dom.verifyCode.value.trim().toUpperCase();
+const currentState = GLOBAL_STATE.getState();
+if (inputHex === currentState.hexCode) {
+const validatedUser = { name: this.dom.uName.value.trim(), last: this.dom.uLast.value.trim(), wa: this.dom.uWa.value.trim(), email: this.dom.uEmail.value.trim(), loc: currentState.location || this.dom.uAddr.value.trim(), verified: true, timestamp: Date.now() };
+SessionManager.saveSession(validatedUser);
+GLOBAL_STATE.mutate({ user: validatedUser, isAuthModalOpen: false, authStep: 1, hexCode: "" });
+this.dom.errorHex.style.display = 'none';
+this.dom.verifyCode.value = "";
+NotificationEngine.show(`Operador ${validatedUser.name} autenticado. Matriz desbloqueada.`, "success");
+if (currentState.pendingAction && currentState.pendingAction.type === 'ADD_ITEM') {
+this.processCardClick(currentState.pendingAction.itemId);
+GLOBAL_STATE.mutate({ pendingAction: null });
+}
 } else {
-document.getElementById('error-hex').style.display = 'block';
+this.dom.errorHex.style.display = 'block';
+NotificationEngine.show(`Protocolo rechazado. Token inválido.`, "error");
+}
+}
+processCardClick(itemId) {
+const currentState = GLOBAL_STATE.getState();
+const productDef = currentState.searchResults.find(p => p.id === itemId);
+if (!productDef) return;
+if (!currentState.user || !currentState.user.verified) {
+GLOBAL_STATE.mutate({ isAuthModalOpen: true, pendingAction: { type: 'ADD_ITEM', itemId: itemId } });
+NotificationEngine.show("Validación corporativa requerida para procesar órdenes.", "info");
+} else { CartManager.addItem(productDef); }
+}
+removeCartItem(uuid) { CartManager.removeItem(uuid); }
+handleCheckout() {
+const currentState = GLOBAL_STATE.getState();
+if (currentState.cart.length === 0) return;
+const grandTotal = currentState.cart.reduce((acc, item) => acc + item.price, 0).toFixed(2);
+let message = `*MercaDRIEL Enterprise - Manifiesto B2B*\n`;
+message += `Operador: ${currentState.user.name} ${currentState.user.last}\n`;
+message += `Coordenadas: ${currentState.user.loc}\n\n`;
+message += `*Detalle Logístico:*\n`;
+currentState.cart.forEach((item, index) => { message += `${index + 1}. ${item.title} -> $${item.price.toFixed(2)}\n`; });
+message += `\n*INVERSIÓN TOTAL: $${grandTotal}*\n\n`;
+message += `Solicito instrucciones de giro y confirmación de trámite aduanero.`;
+const waUrl = `https://wa.me/${APP_CONFIG.ADMIN_WA}?text=${encodeURIComponent(message)}`;
+window.open(waUrl, '_blank');
+GLOBAL_STATE.mutate({ cart: [] });
+SessionManager.saveCart([]);
+NotificationEngine.show("Manifiesto transmitido a central operativa.", "success");
+}
+renderEngine(state) {
+this.dom.stUser.innerText = state.user ? `${state.user.name.toUpperCase()} / SECURE` : APP_CONFIG.DEFAULT_LOCATION;
+this.dom.stUser.style.color = state.user ? '#10b981' : '#ef4444';
+this.dom.modalAuth.style.display = state.isAuthModalOpen ? 'flex' : 'none';
+if (state.authStep === 1) { this.dom.step1.style.display = 'block'; this.dom.step2.style.display = 'none'; } else { this.dom.step1.style.display = 'none'; this.dom.step2.style.display = 'block'; }
+this.dom.cartCount.innerText = state.cart.length;
+this.dom.cartList.innerHTML = '';
+let runningTotal = 0;
+if (state.cart.length > 0) {
+this.dom.cartMsg.style.display = 'none';
+this.dom.cartTotalBox.style.display = 'block';
+this.dom.btnCheckout.style.display = 'block';
+state.cart.forEach((item) => {
+runningTotal += item.price;
+const li = document.createElement('li');
+li.className = 'cart-item';
+li.innerHTML = `
+<div class="cart-item-header">
+<span class="cart-item-title">${item.title}</span>
+<button class="btn-delete-item" onclick="window.AppLogicReference.removeCartItem('${item.uuid}')">✕</button>
+</div>
+<span class="cart-item-price">$${item.price.toFixed(2)}</span>
+`;
+this.dom.cartList.appendChild(li);
+});
+this.dom.cartTotalVal.innerText = `$${runningTotal.toFixed(2)}`;
+} else {
+this.dom.cartMsg.style.display = 'block';
+this.dom.cartTotalBox.style.display = 'none';
+this.dom.btnCheckout.style.display = 'none';
+}
+if (state.searchResults.length > 0 && document.getElementById('q-input').value === state.query) {
+this.dom.productStream.innerHTML = '';
+state.searchResults.forEach(product => {
+const cardWrapper = document.createElement('div');
+cardWrapper.className = 'card-md';
+cardWrapper.onclick = () => this.processCardClick(product.id);
+let dynamicPriceBlock = `<div class="price-locked">◈ REQUIERE AUTENTICACIÓN ◈</div>`;
+let btnText = 'DESBLOQUEAR TARIFA B2B';
+if (state.user && state.user.verified) {
+const calculatedTotal = (product.base * APP_CONFIG.TAX_RATE) + APP_CONFIG.BASE_FEE;
+dynamicPriceBlock = `<div class="price-active">$${calculatedTotal.toFixed(2)}</div><div style="font-size:0.75rem; color:#64748b; margin-top:5px; font-weight:700;">DDP BOLIVIA (INC. IMPUESTOS)</div>`;
+btnText = 'AÑADIR AL MANIFIESTO';
+}
+cardWrapper.innerHTML = `
+<div>
+<div class="product-icon">📦</div>
+<h3>${product.title}</h3>
+${dynamicPriceBlock}
+</div>
+<button class="btn-action">${btnText}</button>
+`;
+this.dom.productStream.appendChild(cardWrapper);
+});
 }
 }
 }
-const Core = new MercaDrielApp();
+window.addEventListener('DOMContentLoaded', () => { new AppLogic(); });
 </script>
 </body>
 </html>
