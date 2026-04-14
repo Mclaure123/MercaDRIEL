@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MercaDRIEL ◈ Secure Logistics</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+h1, h2, .brand-font { font-family: 'Orbitron', sans-serif; }
+body { width: 100vw; height: 100vh; overflow: hidden; background: #020205; color: #fff; }
+#welcome-layer { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.glitch { font-size: 4rem; color: #e94560; text-shadow: 2px 2px #00fff2; font-weight: 900; }
+#btn-enter-sys { margin-top: 30px; padding: 15px 40px; background: #e94560; color: #fff; border: none; cursor: pointer; font-weight: 900; letter-spacing: 3px; clip-path: polygon(5% 0, 100% 0, 95% 100%, 0 100%); }
+#hud-top { height: 45px; background: #0a0a0f; border-bottom: 1px solid #e94560; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; font-size: 0.7rem; color: #888; text-transform: uppercase; }
+#hud-top span { color: #e94560; margin-left: 5px; font-weight: bold; }
+#hero-search-zone { height: 140px; background: radial-gradient(circle at center, #111 0%, #020205 100%); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #1a1a1a; }
+.search-container { width: 90%; max-width: 900px; display: flex; filter: drop-shadow(0 0 15px rgba(233,69,96,0.2)); }
+.search-container input { flex-grow: 1; padding: 22px 35px; background: rgba(0,0,0,0.8); border: 2px solid #e94560; border-right: none; border-radius: 50px 0 0 50px; color: #fff; font-size: 1.2rem; outline: none; }
+.search-container button { padding: 0 45px; background: #e94560; border: none; border-radius: 0 50px 50px 0; color: #fff; font-weight: 900; cursor: pointer; font-family: 'Orbitron'; }
+#main-viewport { display: grid; grid-template-columns: 1fr 380px; height: calc(100vh - 185px); }
+#product-stream { overflow-y: auto; padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+#product-stream::-webkit-scrollbar { width: 4px; }
+#product-stream::-webkit-scrollbar-thumb { background: #e94560; }
+#side-info { background: #050508; border-left: 1px solid #1a1a1a; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+.card-md { background: #0a0a0f; border: 1px solid #1a1a1a; border-radius: 8px; padding: 20px; transition: 0.4s; }
+.card-md:hover { border-color: #e94560; transform: translateY(-3px); }
+.card-md h3 { font-size: 0.9rem; margin-bottom: 15px; color: #ccc; }
+.price-locked { color: #444; font-size: 0.75rem; border: 1px dashed #333; padding: 10px; text-align: center; }
+.price-active { color: #4caf50; font-weight: 900; font-size: 1.4rem; }
+.btn-action { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 4px; font-weight: 900; cursor: pointer; margin-top: 15px; font-family: 'Orbitron'; font-size: 0.7rem; }
+#modal-auth { position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.auth-box { background: #0a0a0f; width: 100%; max-width: 600px; border: 1px solid #e94560; border-radius: 10px; overflow: hidden; }
+.auth-header { background: #e94560; padding: 20px; text-align: center; font-family: 'Orbitron'; font-weight: 900; }
+.auth-content { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+.auth-step-2 { display: none; }
+.input-wrap { display: flex; flex-direction: column; gap: 8px; }
+.input-wrap label { font-size: 0.7rem; color: #e94560; font-weight: bold; }
+.input-wrap input { padding: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+#map-pre { height: 180px; background: #000; border: 1px solid #222; border-radius: 5px; overflow: hidden; }
+#map-pre iframe { width: 100%; height: 100%; border: none; }
+.btn-step { background: #e94560; color: #fff; border: none; padding: 18px; font-weight: 900; cursor: pointer; font-family: 'Orbitron'; margin-top: 10px; }
+.btn-gps-alt { background: #00fff2; color: #000; padding: 5px 15px; border-radius: 3px; font-weight: bold; cursor: pointer; font-size: 0.7rem; border: none; }
+</style>
+</head>
+<body>
+<section id="welcome-layer">
+<div class="glitch">MercaDRIEL</div>
+<div style="letter-spacing: 5px; color: #444; font-size: 0.8rem;">LIMBERT LANDRIEL ◈ BOLIVIA 2026</div>
+<button id="btn-enter-sys">ACCEDER AL TERMINAL</button>
+</section>
+<header id="hud-top">
+<div>BRAND: <span>MercaDRIEL v4.0</span></div>
+<div>ADDR: <span>Sta. Cruz, BO</span></div>
+<div>WA: <span>+591 70000000</span></div>
+<div>STATUS: <span id="st-user">DESCONOCIDO</span></div>
+</header>
+<section id="hero-search-zone">
+<form class="search-container" id="search-engine">
+<input type="text" id="q-input" placeholder="¿QUÉ DESEAS TRAER DE MERCADO LIBRE?" required autocomplete="off">
+<button type="submit">BUSCAR</button>
+</form>
+</section>
+<main id="main-viewport">
+<section id="product-stream"></section>
+<aside id="side-info">
+<h3 class="brand-font" style="font-size:0.8rem; border-bottom:1px solid #e94560; padding-bottom:10px;">MI DESPACHO</h3>
+<div id="cart-msg" style="color:#444; font-size:0.75rem;">Agregue productos para iniciar cotización lograda por Limbert Landriel.</div>
+</aside>
+</main>
+<div id="modal-auth">
+<div class="auth-box">
+<div class="auth-header">MercaDRIEL ◈ VERIFICACIÓN DE SEGURIDAD</div>
+<div class="auth-content">
+<form id="step-1">
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+<div class="input-wrap"><label>NOMBRE</label><input type="text" id="u-name" required></div>
+<div class="input-wrap"><label>APELLIDO</label><input type="text" id="u-last" required></div>
+</div>
+<div class="input-wrap"><label>WHATSAPP (PARA RECIBIR CÓDIGO HEX)</label><input type="tel" id="u-wa" placeholder="+591" required></div>
+<div class="input-wrap">
+<label>ENTREGA GPS</label>
+<div style="display:flex; gap:10px;">
+<input type="text" id="u-addr" style="flex-grow:1" readonly required placeholder="Ubicación requerida...">
+<button type="button" class="btn-gps-alt" id="trigger-geo">DETECTAR</button>
+</div>
+</div>
+<div id="map-pre"></div>
+<button type="submit" class="btn-step" style="width:100%">OBTENER CÓDIGO HEXADECIMAL</button>
+</form>
+<form id="step-2" class="auth-step-2">
+<p style="text-align:center; font-size:0.8rem; color:#888;">Hemos generado un código de 4 caracteres.<br>Ingrese el código para desbloquear los precios de MercaDRIEL.</p>
+<div class="input-wrap" style="margin:20px 0;">
+<label style="text-align:center;">CÓDIGO HEX (4 DÍGITOS)</label>
+<input type="text" id="verify-code" maxlength="4" style="text-align:center; font-size:2rem; letter-spacing:10px; font-family:'Orbitron';" placeholder="0000" required>
+</div>
+<button type="submit" class="btn-step" style="width:100%; background:#4caf50;">VERIFICAR Y ACTIVAR PRECIOS</button>
+<p id="error-hex" style="color:#e94560; font-size:0.7rem; text-align:center; display:none; margin-top:10px;">CÓDIGO INCORRECTO. REINTENTE.</p>
+</form>
+</div>
+</div>
+</div>
+<script>
+/** @class MercaDrielApp Motor V4 con Validación Hexadecimal */
+class MercaDrielApp {
+constructor() {
+this.config = { STORAGE: "MDR_LOG_V4", HEX: "" };
+this.db = { user: JSON.parse(localStorage.getItem(this.config.STORAGE)), results: [] };
+this.ui = {
+welcome: document.getElementById('welcome-layer'),
+modal: document.getElementById('modal-auth'),
+st1: document.getElementById('step-1'),
+st2: document.getElementById('step-2'),
+map: document.getElementById('map-pre'),
+addr: document.getElementById('u-addr'),
+grid: document.getElementById('product-stream')
+};
+this.init();
+}
+init() {
+document.getElementById('btn-enter-sys').onclick = () => this.enter();
+document.getElementById('search-engine').onsubmit = (e) => this.search(e);
+document.getElementById('trigger-geo').onclick = () => this.geo();
+this.ui.st1.onsubmit = (e) => this.sendCode(e);
+this.ui.st2.onsubmit = (e) => this.verify(e);
+if(this.db.user) document.getElementById('st-user').innerText = this.db.user.name;
+}
+enter() { if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); this.ui.welcome.style.display = 'none'; }
+async search(e) {
+e.preventDefault();
+const q = document.getElementById('q-input').value;
+this.ui.grid.innerHTML = `<h2 class="brand-font" style="grid-column:1/-1; text-align:center;">RASTREANDO EN RED MercaDRIEL...</h2>`;
+setTimeout(() => {
+this.db.results = [
+{id:'H1', title:`${q} - Importación Directa Landriel`, base:210},
+{id:'H2', title:`${q} - Lote de Aduana Santa Cruz`, base:135},
+{id:'H3', title:`${q} - Premium Global Express`, base:450}
+];
+this.draw();
+}, 800);
+}
+draw() {
+this.ui.grid.innerHTML = '';
+this.db.results.forEach(p => {
+const div = document.createElement('div');
+div.className = 'card-md';
+let pContent = `<div class="price-locked">◈ REGÍSTRESE PARA COTIZAR ◈</div>`;
+if(this.db.user && this.db.user.verified) {
+const total = (p.base * 1.18) + 55; // Tasas MercaDRIEL
+pContent = `<div class="price-active">$${total.toFixed(2)}</div><div style="font-size:0.6rem; color:#666;">ENTREGA FINAL BOLIVIA</div>`;
+}
+div.innerHTML = `<div style="height:150px; background:#000; display:flex; align-items:center; justify-content:center; border:1px solid #1a1a1a; font-size:3rem; color:#111;">◈</div>
+<h3>${p.title}</h3>${pContent}
+<button class="btn-action" onclick="Core.action('${p.id}')">AGREGAR A MI LISTA</button>`;
+this.ui.grid.appendChild(div);
+});
+}
+action(id) {
+if(!this.db.user || !this.db.user.verified) { this.ui.modal.style.display = 'flex'; } 
+else { alert("◈ Producto añadido a su solicitud en MercaDRIEL."); }
+}
+geo() {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(pos => {
+const { latitude, longitude } = pos.coords;
+this.ui.addr.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+this.ui.map.innerHTML = `<iframe src="https://maps.google.com/maps?q=${latitude},${longitude}&z=16&output=embed"></iframe>`;
+this.coords = `${latitude},${longitude}`;
+});
+}
+}
+sendCode(e) {
+e.preventDefault();
+// GENERAR CÓDIGO HEXADECIMAL DE 4 DÍGITOS
+this.config.HEX = Math.floor(Math.random() * 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+const phone = document.getElementById('u-wa').value;
+const name = document.getElementById('u-name').value;
+// ABRIR WHATSAPP CON EL CÓDIGO (Simula envío)
+const msg = encodeURIComponent(`MercaDRIEL: Hola ${name}, tu código de verificación es: ${this.config.HEX}`);
+window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+// PASAR AL PASO 2
+this.ui.st1.style.display = 'none';
+this.ui.st2.style.display = 'block';
+console.log("MercaDRIEL Hex:", this.config.HEX); // Solo para desarrollo
+}
+verify(e) {
+e.preventDefault();
+const input = document.getElementById('verify-code').value.toUpperCase();
+if(input === this.config.HEX) {
+const user = {
+name: document.getElementById('u-name').value,
+last: document.getElementById('u-last').value,
+wa: document.getElementById('u-wa').value,
+loc: this.coords,
+verified: true
+};
+localStorage.setItem(this.config.STORAGE, JSON.stringify(user));
+this.db.user = user;
+this.ui.modal.style.display = 'none';
+document.getElementById('st-user').innerText = user.name;
+this.draw();
+} else {
+document.getElementById('error-hex').style.display = 'block';
+}
+}
+}
+const Core = new MercaDrielApp();
+</script>
+</body>
+</html>
