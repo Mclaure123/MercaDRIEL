@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700;900&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
 <style>
 /* ==========================================================================
-   ENGINE CSS V18 - DUAL-FETCH CORS BYPASS & FLUID RESPONSIVE
+   ENGINE CSS V18 - FLUID RESPONSIVE
    ========================================================================== */
 :root { --vh: 1vh; --ui-scale: 1; --primary: #3b82f6; --primary-hover: #2563eb; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --dark-bg: #05080f; --panel-bg: #0b1120; --card-bg: #1e293b; --border: #334155; --text-main: #f8fafc; --text-muted: #94a3b8; --console-txt: #00ffcc; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -130,13 +130,13 @@ body { width: 100vw; height: calc(var(--vh, 1vh) * 100); overflow: hidden; backg
     <button id="btn-ar" class="btn-country active">🇦🇷 AR</button>
     <button id="btn-br" class="btn-country">🇧🇷 BR</button>
 </div>
-<div class="hud-hide">SYS: <span>v18.0 Dual-Fetch</span></div>
+<div class="hud-hide">SYS: <span>v18.0 Serverless</span></div>
 <div>OP: <span id="st-user" style="color:var(--danger)">NO VINCULADO</span></div>
 </header>
 <div id="hud-ticker">
 <div class="ticker-content">
 <div class="ticker-item"><div class="ticker-dot"></div>MercaDRIEL Logistics S.R.L.</div>
-<div class="ticker-item"><div class="ticker-dot"></div>Motor: Meli API Integrada (Dual-Fetch CORS Bypass)</div>
+<div class="ticker-item"><div class="ticker-dot"></div>Motor: API Integrada Vercel Serverless (CORS Bypass nativo)</div>
 <div class="ticker-item"><div class="ticker-dot"></div>Rutas: MercadoLibre (AR/BR) ➔ Bolivia</div>
 <div class="ticker-item"><div class="ticker-dot"></div>Conversión Forex: Automática a USD</div>
 <div class="ticker-item"><div class="ticker-dot"></div>Seguridad: OTP Handshake de 1 Solo Uso</div>
@@ -241,38 +241,51 @@ class StateManager { constructor(){this.s={user:null,hex:null,site:'MLA',res:[],
 const ST = new StateManager();
 class Notify { static show(m,t='info'){ const c = document.getElementById('toast-container'); const el = document.createElement('div'); el.className=`toast toast-${t}`; let icon = t==='success'?'✅':t==='error'?'🚨':t==='warning'?'⚠️':'ℹ️'; el.innerHTML=`<span>${icon}</span><span>${m}</span>`; c.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show'))); setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(c.contains(el))c.removeChild(el);},400);}, t==='warning'?5000:3000); }}
 class Session { static init(){ try{ let u=localStorage.getItem(CFG.ST_KEY), c=localStorage.getItem(CFG.CART_KEY); if(u)ST.mut({user:JSON.parse(u)}); if(c)ST.mut({cart:JSON.parse(c)}); }catch(e){localStorage.clear();} } static saveU(u){try{localStorage.setItem(CFG.ST_KEY,JSON.stringify(u));}catch(e){}} static saveC(c){try{localStorage.setItem(CFG.CART_KEY,JSON.stringify(c));}catch(e){}} }
+
+/* ===== NUEVO MOTOR MELI API VIA VERCEL SERVERLESS ===== */
 class MeliAPI {
-static async fetch(query, site) {
-const endpoint = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(query)}&limit=16`;
-try {
-const r = await fetch(endpoint);
-if(!r.ok) throw new Error("CORS or Network Error");
-return await this.processData(await r.json(), site);
-} catch(e) {
-console.warn("[MeliAPI] Bloqueo CORS detectado (Ruta A). Abriendo túnel de bypass (Ruta B)...");
-try {
-const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(endpoint)}`;
-const r2 = await fetch(proxyUrl);
-if(!r2.ok) throw new Error("Proxy Error");
-Notify.show("Túnel CORS establecido. Extrayendo datos crudos...", "warning");
-return await this.processData(await r2.json(), site);
-} catch(e2) {
-console.error("[MeliAPI] Túnel B fallido. Sistema offline.", e2);
-return null; 
+  static async fetch(query, site) {
+    // Apuntamos al backend local en la nube (Vercel Node.js Serverless)
+    const endpoint = `/api/search?q=${encodeURIComponent(query)}&site=${site}`;
+    
+    try {
+      const r = await fetch(endpoint);
+      if(!r.ok) throw new Error("Error en el servidor Vercel");
+      
+      const data = await r.json();
+      return await this.processData(data, site);
+      
+    } catch(e) {
+      console.warn("[MeliAPI] Sistema offline o error de red. Activando modo respaldo.", e);
+      return null; 
+    }
+  }
+
+  static async processData(d, site) {
+    if(!d.results || d.results.length === 0) return [];
+    return d.results.map(i => {
+      let img = 'https://via.placeholder.com/300x300/1e293b/3b82f6?text=FOTO+NO+DISPONIBLE'; 
+      if(i.thumbnail) { 
+        img = i.thumbnail.replace('http://', 'https://'); 
+        if(img.includes('-I.jpg')) img = img.replace('-I.jpg', '-W.jpg'); 
+      }
+      let usdPrice = i.price * CFG.FOREX[site];
+      return { id: i.id, title: i.title, base: usdPrice, img: img };
+    });
+  }
+
+  static getFallbackCatalog(query, site) { 
+    const px = site === 'MLA' ? 'AR' : 'BR'; 
+    return [ 
+      { id: `FBK1-${Date.now()}`, title: `${query} - Importación DDP ${px}`, base: 250.00, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK2-${Date.now()}`, title: `${query} - Lote Mayorista ${px}`, base: 145.50, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK3-${Date.now()}`, title: `${query} - Unidad Retail ${px}`, base: 310.20, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK4-${Date.now()}`, title: `${query} - Stock Express ${px}`, base: 89.90, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' } 
+    ]; 
+  }
 }
-}
-}
-static async processData(d, site) {
-if(!d.results || d.results.length === 0) return [];
-return d.results.map(i => {
-let img = 'https://via.placeholder.com/300x300/1e293b/3b82f6?text=FOTO+NO+DISPONIBLE'; 
-if(i.thumbnail) { img = i.thumbnail.replace('http://', 'https://'); if(img.includes('-I.jpg')) img = img.replace('-I.jpg', '-W.jpg'); }
-let usdPrice = i.price * CFG.FOREX[site];
-return { id: i.id, title: i.title, base: usdPrice, img: img };
-});
-}
-static getFallbackCatalog(query, site) { const px = site === 'MLA' ? 'AR' : 'BR'; return [ { id: `FBK1-${Date.now()}`, title: `${query} - Importación DDP ${px}`, base: 250.00, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, { id: `FBK2-${Date.now()}`, title: `${query} - Lote Mayorista ${px}`, base: 145.50, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, { id: `FBK3-${Date.now()}`, title: `${query} - Unidad Retail ${px}`, base: 310.20, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, { id: `FBK4-${Date.now()}`, title: `${query} - Stock Express ${px}`, base: 89.90, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' } ]; }
-}
+/* ====================================================== */
+
 class CartLogic {
 static add(prod) {
 let cart = ST.get().cart; let exist = cart.find(i=>i.id===prod.id);
@@ -301,7 +314,7 @@ e.preventDefault(); const q = document.getElementById('q-input').value.trim(); i
 const s = ST.get(); ST.mut({gridTitle: `Conectando con servidores en ${CFG.SITES[s.site]}...`, res:[]});
 document.getElementById('product-stream').innerHTML = `<div class="loader-grid">DESCARGANDO CATÁLOGO: ${CFG.SITES[s.site].toUpperCase()}...</div>`;
 let results = await MeliAPI.fetch(q, s.site);
-if(results === null) { Notify.show("Conexión a ML fallida o restringida. Activando catálogo de respaldo.", "warning"); results = MeliAPI.getFallbackCatalog(q, s.site); ST.mut({gridTitle: `MODO OFFLINE (RESPALDO): ${q.toUpperCase()}`, res: results}); } else if(results.length === 0) { Notify.show("No se encontraron coincidencias en el nodo.", "error"); ST.mut({gridTitle: `Sin resultados para: ${q.toUpperCase()}`, res: []}); } else { ST.mut({gridTitle: `Resultados en ${CFG.SITES[s.site]}: ${q.toUpperCase()}`, res: results}); }
+if(results === null) { Notify.show("Conexión fallida o restringida. Activando catálogo de respaldo.", "warning"); results = MeliAPI.getFallbackCatalog(q, s.site); ST.mut({gridTitle: `MODO OFFLINE (RESPALDO): ${q.toUpperCase()}`, res: results}); } else if(results.length === 0) { Notify.show("No se encontraron coincidencias en el nodo.", "error"); ST.mut({gridTitle: `Sin resultados para: ${q.toUpperCase()}`, res: []}); } else { ST.mut({gridTitle: `Resultados en ${CFG.SITES[s.site]}: ${q.toUpperCase()}`, res: results}); }
 };
 document.getElementById('trigger-geo').onclick = () => { if(!navigator.geolocation)return; document.getElementById('u-addr').value = "Triangulando..."; navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('u-addr').value = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`; }, e=>{ document.getElementById('u-addr').removeAttribute('readonly'); document.getElementById('u-addr').value=""; Notify.show("Ingrese datos manualmente","error"); }); };
 document.getElementById('form-step-1').onsubmit = e => { e.preventDefault(); const hex = Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,'0'); ST.mut({hex, step:2}); this.runConsoleSimulation(hex); };
