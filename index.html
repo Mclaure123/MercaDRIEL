@@ -245,18 +245,23 @@ class Session { static init(){ try{ let u=localStorage.getItem(CFG.ST_KEY), c=lo
 /* ===== NUEVO MOTOR MELI API VIA VERCEL SERVERLESS ===== */
 class MeliAPI {
   static async fetch(query, site) {
-    // Apuntamos al backend local en la nube (Vercel Node.js Serverless)
     const endpoint = `/api/search?q=${encodeURIComponent(query)}&site=${site}`;
     
     try {
       const r = await fetch(endpoint);
-      if(!r.ok) throw new Error("Error en el servidor Vercel");
+      
+      if(!r.ok) {
+        const errorData = await r.json().catch(() => ({}));
+        throw new Error(errorData.detalle || errorData.error || `Error HTTP ${r.status}`);
+      }
       
       const data = await r.json();
       return await this.processData(data, site);
       
     } catch(e) {
-      console.warn("[MeliAPI] Sistema offline o error de red. Activando modo respaldo.", e);
+      console.error("[Backend Vercel Error]:", e.message);
+      // Notificamos el error en pantalla
+      Notify.show(`Aviso: ${e.message}`, "warning");
       return null; 
     }
   }
@@ -264,7 +269,8 @@ class MeliAPI {
   static async processData(d, site) {
     if(!d.results || d.results.length === 0) return [];
     return d.results.map(i => {
-      let img = 'https://via.placeholder.com/300x300/1e293b/3b82f6?text=FOTO+NO+DISPONIBLE'; 
+      // Nuevas imagenes de placeholder funcionales
+      let img = 'https://placehold.co/300x300/1e293b/3b82f6?text=FOTO+NO+DISPONIBLE'; 
       if(i.thumbnail) { 
         img = i.thumbnail.replace('http://', 'https://'); 
         if(img.includes('-I.jpg')) img = img.replace('-I.jpg', '-W.jpg'); 
@@ -276,11 +282,12 @@ class MeliAPI {
 
   static getFallbackCatalog(query, site) { 
     const px = site === 'MLA' ? 'AR' : 'BR'; 
+    // Nuevas imagenes de placeholder para offline
     return [ 
-      { id: `FBK1-${Date.now()}`, title: `${query} - Importación DDP ${px}`, base: 250.00, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
-      { id: `FBK2-${Date.now()}`, title: `${query} - Lote Mayorista ${px}`, base: 145.50, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
-      { id: `FBK3-${Date.now()}`, title: `${query} - Unidad Retail ${px}`, base: 310.20, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
-      { id: `FBK4-${Date.now()}`, title: `${query} - Stock Express ${px}`, base: 89.90, img: 'https://via.placeholder.com/300x300/1e293b/10b981?text=CATALOGO+BACKUP' } 
+      { id: `FBK1-${Date.now()}`, title: `${query} - Importación DDP ${px}`, base: 250.00, img: 'https://placehold.co/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK2-${Date.now()}`, title: `${query} - Lote Mayorista ${px}`, base: 145.50, img: 'https://placehold.co/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK3-${Date.now()}`, title: `${query} - Unidad Retail ${px}`, base: 310.20, img: 'https://placehold.co/300x300/1e293b/10b981?text=CATALOGO+BACKUP' }, 
+      { id: `FBK4-${Date.now()}`, title: `${query} - Stock Express ${px}`, base: 89.90, img: 'https://placehold.co/300x300/1e293b/10b981?text=CATALOGO+BACKUP' } 
     ]; 
   }
 }
@@ -314,7 +321,7 @@ e.preventDefault(); const q = document.getElementById('q-input').value.trim(); i
 const s = ST.get(); ST.mut({gridTitle: `Conectando con servidores en ${CFG.SITES[s.site]}...`, res:[]});
 document.getElementById('product-stream').innerHTML = `<div class="loader-grid">DESCARGANDO CATÁLOGO: ${CFG.SITES[s.site].toUpperCase()}...</div>`;
 let results = await MeliAPI.fetch(q, s.site);
-if(results === null) { Notify.show("Conexión fallida o restringida. Activando catálogo de respaldo.", "warning"); results = MeliAPI.getFallbackCatalog(q, s.site); ST.mut({gridTitle: `MODO OFFLINE (RESPALDO): ${q.toUpperCase()}`, res: results}); } else if(results.length === 0) { Notify.show("No se encontraron coincidencias en el nodo.", "error"); ST.mut({gridTitle: `Sin resultados para: ${q.toUpperCase()}`, res: []}); } else { ST.mut({gridTitle: `Resultados en ${CFG.SITES[s.site]}: ${q.toUpperCase()}`, res: results}); }
+if(results === null) { results = MeliAPI.getFallbackCatalog(q, s.site); ST.mut({gridTitle: `MODO OFFLINE (RESPALDO): ${q.toUpperCase()}`, res: results}); } else if(results.length === 0) { Notify.show("No se encontraron coincidencias en el nodo.", "error"); ST.mut({gridTitle: `Sin resultados para: ${q.toUpperCase()}`, res: []}); } else { ST.mut({gridTitle: `Resultados en ${CFG.SITES[s.site]}: ${q.toUpperCase()}`, res: results}); }
 };
 document.getElementById('trigger-geo').onclick = () => { if(!navigator.geolocation)return; document.getElementById('u-addr').value = "Triangulando..."; navigator.geolocation.getCurrentPosition(p=>{ document.getElementById('u-addr').value = `${p.coords.latitude.toFixed(5)}, ${p.coords.longitude.toFixed(5)}`; }, e=>{ document.getElementById('u-addr').removeAttribute('readonly'); document.getElementById('u-addr').value=""; Notify.show("Ingrese datos manualmente","error"); }); };
 document.getElementById('form-step-1').onsubmit = e => { e.preventDefault(); const hex = Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,'0'); ST.mut({hex, step:2}); this.runConsoleSimulation(hex); };
@@ -333,7 +340,7 @@ const s = ST.get(); const randomTerm = CFG.B2B_TERMS[Math.floor(Math.random() * 
 ST.mut({gridTitle: `Sincronizando catálogo desde ${CFG.SITES[s.site]}...`, res:[]});
 document.getElementById('product-stream').innerHTML = `<div class="loader-grid">DESCARGANDO TENDENCIAS: ${CFG.SITES[s.site].toUpperCase()}...</div>`;
 let results = await MeliAPI.fetch(randomTerm, s.site);
-if(results === null) { Notify.show("Red de servidores restringida. Mostrando demostración offline.", "warning"); results = MeliAPI.getFallbackCatalog(randomTerm, s.site); ST.mut({gridTitle: `MODO OFFLINE (DEMO): ${randomTerm.toUpperCase()}`, res: results}); } else { ST.mut({gridTitle: `Tendencias B2B en ${CFG.SITES[s.site]}: ${randomTerm.toUpperCase()}`, res: results}); }
+if(results === null) { results = MeliAPI.getFallbackCatalog(randomTerm, s.site); ST.mut({gridTitle: `MODO OFFLINE (DEMO): ${randomTerm.toUpperCase()}`, res: results}); } else { ST.mut({gridTitle: `Tendencias B2B en ${CFG.SITES[s.site]}: ${randomTerm.toUpperCase()}`, res: results}); }
 }
 runConsoleSimulation(key) {
 const cb = document.getElementById('security-console'); const kb = document.getElementById('key-box'); const ig = document.getElementById('verify-input-group'); const bs = document.getElementById('btn-submit-hex'); const kd = document.getElementById('generated-key-display');
