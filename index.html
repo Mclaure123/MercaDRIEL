@@ -242,27 +242,38 @@ const ST = new StateManager();
 class Notify { static show(m,t='info'){ const c = document.getElementById('toast-container'); const el = document.createElement('div'); el.className=`toast toast-${t}`; let icon = t==='success'?'✅':t==='error'?'🚨':t==='warning'?'⚠️':'ℹ️'; el.innerHTML=`<span>${icon}</span><span>${m}</span>`; c.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show'))); setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(c.contains(el))c.removeChild(el);},400);}, t==='warning'?5000:3000); }}
 class Session { static init(){ try{ let u=localStorage.getItem(CFG.ST_KEY), c=localStorage.getItem(CFG.CART_KEY); if(u)ST.mut({user:JSON.parse(u)}); if(c)ST.mut({cart:JSON.parse(c)}); }catch(e){localStorage.clear();} } static saveU(u){try{localStorage.setItem(CFG.ST_KEY,JSON.stringify(u));}catch(e){}} static saveC(c){try{localStorage.setItem(CFG.CART_KEY,JSON.stringify(c));}catch(e){}} }
 
-/* ===== MOTOR CONEXIÓN DIRECTA (CLIENT-SIDE) ===== */
+/* ===== MOTOR BLINDADO CON PROXY CORS PÚBLICO ===== */
 class MeliAPI {
   static async fetch(query, site) {
-    // Se conecta directo desde el navegador de tu computadora/celular a ML
-    // Evitando los servidores bloqueados de Vercel (AWS)
-    const endpoint = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(query)}&limit=24`;
+    // URL original de MercadoLibre
+    const meliUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(query)}&limit=24`;
     
     try {
-      const r = await fetch(endpoint);
-      
-      if(!r.ok) {
-        throw new Error(`Meli bloqueó la conexión local: ${r.status}`);
-      }
-      
-      const data = await r.json();
+      // INTENTO 1: Conexión directa (Por si lo pruebas en tu PC local)
+      let r = await fetch(meliUrl);
+      if(!r.ok) throw new Error("Fallo directo");
+      let data = await r.json();
       return await this.processData(data, site);
       
-    } catch(e) {
-      console.error("[Frontend Fetch Error]:", e.message);
-      Notify.show(`Conexión interceptada. Usando catálogo offline.`, "warning");
-      return null; 
+    } catch (errorDirecto) {
+      console.warn("CORS bloqueado, activando túnel Proxy...");
+      
+      try {
+        // INTENTO 2 (El Salvador): Usamos un Proxy Público que evita el bloqueo CORS
+        // Usamos /raw para que nos devuelva el JSON limpio y directo
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(meliUrl)}`;
+        
+        let proxyReq = await fetch(proxyUrl);
+        if(!proxyReq.ok) throw new Error("Fallo en el túnel Proxy");
+        
+        let proxyData = await proxyReq.json();
+        return await this.processData(proxyData, site);
+        
+      } catch (errorProxy) {
+        console.error("Ambas rutas fallaron:", errorProxy);
+        Notify.show(`Conexión interceptada. Usando catálogo offline.`, "warning");
+        return null; 
+      }
     }
   }
 
@@ -274,6 +285,9 @@ class MeliAPI {
         img = i.thumbnail.replace('http://', 'https://'); 
         if(img.includes('-I.jpg')) img = img.replace('-I.jpg', '-W.jpg'); 
       }
+      // Aseguramos que la imagen use HTTPS para no romper la seguridad
+      img = img.replace('http://', 'https://');
+      
       let usdPrice = i.price * CFG.FOREX[site];
       return { id: i.id, title: i.title, base: usdPrice, img: img };
     });
