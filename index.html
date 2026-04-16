@@ -242,45 +242,47 @@ const ST = new StateManager();
 class Notify { static show(m,t='info'){ const c = document.getElementById('toast-container'); const el = document.createElement('div'); el.className=`toast toast-${t}`; let icon = t==='success'?'✅':t==='error'?'🚨':t==='warning'?'⚠️':'ℹ️'; el.innerHTML=`<span>${icon}</span><span>${m}</span>`; c.appendChild(el); requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show'))); setTimeout(()=>{el.classList.remove('show');setTimeout(()=>{if(c.contains(el))c.removeChild(el);},400);}, t==='warning'?5000:3000); }}
 class Session { static init(){ try{ let u=localStorage.getItem(CFG.ST_KEY), c=localStorage.getItem(CFG.CART_KEY); if(u)ST.mut({user:JSON.parse(u)}); if(c)ST.mut({cart:JSON.parse(c)}); }catch(e){localStorage.clear();} } static saveU(u){try{localStorage.setItem(CFG.ST_KEY,JSON.stringify(u));}catch(e){}} static saveC(c){try{localStorage.setItem(CFG.CART_KEY,JSON.stringify(c));}catch(e){}} }
 
-/* ===== EL MOTOR DEFINITIVO: BYPASS JSONP (INMUNE A CORS Y WAF) ===== */
+/* ===== MOTOR MULTI-PROXY EVASIVO V3 ===== */
 class MeliAPI {
-  static fetch(query, site) {
-    return new Promise((resolve) => {
-      // 1. Creamos un nombre de función única y aleatoria
-      const callbackName = 'meli_respuesta_' + Math.round(1000000 * Math.random());
-      
-      // 2. Armamos la URL usando el parámetro mágico "&callback="
-      const meliUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(query)}&limit=24&callback=${callbackName}`;
-      
-      // 3. Creamos un script "fantasma" en el HTML
-      const script = document.createElement('script');
-      script.src = meliUrl;
-      
-      // 4. Preparamos la "trampa" donde MercadoLibre dejará los datos
-      window[callbackName] = async (data) => {
-        // Limpiamos la basura para no saturar la memoria
-        delete window[callbackName];
-        document.body.removeChild(script);
-        
-        // Entregamos los datos procesados a la interfaz
-        if (data && data.results) {
-          resolve(await this.processData(data, site));
-        } else {
-          resolve(null);
+  static async fetch(query, site) {
+    const targetUrl = `https://api.mercadolibre.com/sites/${site}/search?q=${encodeURIComponent(query)}&limit=24`;
+    
+    // Nuestro arsenal de túneles secretos (Proxies públicos sin bloqueo CORS)
+    const proxies = [
+      `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,                   // Túnel 1: Alto rendimiento
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`, // Túnel 2: Evasión profunda
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,      // Túnel 3: Respaldo
+      targetUrl                                                                   // Túnel 4: Kamikaze (Directo)
+    ];
+
+    let lastError = "";
+
+    // Intentamos abrir las puertas una por una
+    for (let proxyUrl of proxies) {
+      try {
+        const response = await fetch(proxyUrl);
+        if (response.ok) {
+          const data = await response.json();
+          // Si MercadoLibre devuelve resultados vacíos, saltamos al fallback
+          if (!data || !data.results) throw new Error("Datos vacíos");
+          
+          return await this.processData(data, site); // ¡ÉXITO!
         }
-      };
-      
-      // 5. Por si el usuario no tiene internet
-      script.onerror = () => {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        Notify.show(`Aviso: Usando catálogo offline.`, "warning");
-        resolve(null);
-      };
-      
-      // 6. Al agregar el script al body, el navegador hace la descarga sin importar el CORS
-      document.body.appendChild(script);
-    });
+        lastError = `HTTP ${response.status}`;
+      } catch (error) {
+        lastError = error.message;
+        console.warn(`Túnel fallido: ${proxyUrl} -> ${lastError}`);
+        continue; // Si falla, pasa al siguiente túnel de la lista
+      }
+    }
+
+    // Si llegamos hasta aquí, es porque los 4 túneles fueron bloqueados
+    console.error("Todos los túneles fallaron. Último error:", lastError);
+    
+    // AHORA MOSTRAREMOS EL ERROR REAL EN PANTALLA
+    Notify.show(`Bloqueo detectado: ${lastError}`, "error");
+    Notify.show(`Cargando catálogo offline de respaldo...`, "warning");
+    return null; 
   }
 
   static async processData(d, site) {
